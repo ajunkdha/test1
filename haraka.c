@@ -40,7 +40,7 @@ typedef unsigned int uint64_t;
 
 
 void haraka512_keyed(unsigned char *out, const unsigned char *in, const __m128i *rc) {
-  __m128i s[4], tmp;
+  __m128i s[4], tmp, s_save[4];
 
   s[0] = LOAD(in);
   s[1] = LOAD(in + 16);
@@ -54,16 +54,21 @@ void haraka512_keyed(unsigned char *out, const unsigned char *in, const __m128i 
   MIX4(s[0], s[1], s[2], s[3]);
 
   AES4(s[0], s[1], s[2], s[3], 16);
-  s[0] = _mm_xor_si128(s[0], rc256[20]);
-  s[1] = _mm_xor_si128(s[1], rc256[21]);
   MIX4(s[0], s[1], s[2], s[3]);
 
   AES4(s[0], s[1], s[2], s[3], 24);
   MIX4_LAST(s[0], s[1], s[2], s[3]);
 
   AES4_LAST(s[0], s[1], s[2], s[3], 32);
+  s[0] = _mm_xor_m128i(s[0], rc512[40]);
+  s[1] = _mm_xor_m128i(s[1], rc512[41]);
+  s[2] = _mm_xor_m128i(s[2], rc512[42]);
+  s[3] = _mm_xor_m128i(s[3], rc512[43]);
 
-
+  s[0] = _mm_xor_m128i(s[0], s_save[0]);
+  s[1] = _mm_xor_m128i(s[1], s_save[1]);
+  s[2] = _mm_xor_m128i(s[2], s_save[2]);
+  s[3] = _mm_xor_m128i(s[3], s_save[3]);
  // s[0] = _mm_xor_si128(s[0], LOAD(in));
  // s[1] = _mm_xor_si128(s[1], LOAD(in + 16));
  // s[2] = _mm_xor_si128(s[2], LOAD(in + 32));
